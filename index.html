@@ -1,0 +1,2290 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VHDL Code Generator</title>
+    <style>
+        :root {
+            --primary-color: #4a6baf;
+            --secondary-color: #2d3e62;
+            --accent-color: #e74c3c;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .app-title i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+        
+        .app-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+        
+        .version-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .input-section {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .output-section {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+        
+        h2 i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background-color: #f8fafc;
+        }
+        
+        .input-field:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 107, 175, 0.2);
+        }
+        
+        select.input-field {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a6baf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .code-output {
+            background-color: #2d3e50;
+            color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            height: 400px;
+            position: relative;
+        }
+        
+        .code-actions {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .code-action-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .code-action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .component-specific {
+            border-top: 1px solid #e0e6ed;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+        }
+        
+        .component-specific-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .radio-option {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .radio-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+        
+        .radio-option label {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .radio-option input[type="radio"]:checked + label {
+            border-color: var(--primary-color);
+            background-color: rgba(74, 107, 175, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .radio-option input[type="radio"]:focus + label {
+            box-shadow: 0 0 0 3px rgba(74, 107, 175, 0.2);
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+        }
+        
+        /* Animated elements */
+        .animated-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.05;
+        }
+        
+        .wave {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            border-radius: 39% 61% 33% 67% / 70% 43% 57% 30%;
+            transition: all 4s ease;
+            transform: translate(-30%, -70%) rotate(-50deg);
+            animation: wave 15s infinite linear;
+        }
+        
+        .wave:nth-child(2) {
+            animation-delay: -5s;
+            opacity: 0.3;
+            background: var(--accent-color);
+        }
+        
+        .wave:nth-child(3) {
+            animation-delay: -10s;
+            opacity: 0.2;
+            background: var(--secondary-color);
+        }
+        
+        @keyframes wave {
+            0% {
+                transform: translate(-30%, -70%) rotate(-50deg);
+                border-radius: 39% 61% 33% 67% / 70% 43% 57% 30%;
+            }
+            50% {
+                transform: translate(-30%, -70%) rotate(-40deg);
+                border-radius: 56% 44% 27% 73% / 24% 79% 21% 76%;
+            }
+            100% {
+                transform: translate(-30%, -70%) rotate(-50deg);
+                border-radius: 39% 61% 33% 67% / 70% 43% 57% 30%;
+            }
+        }
+        
+        /* Custom Select Styling */
+        .custom-select-wrapper {
+            position: relative;
+        }
+        
+        .neon-glow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(231,76,60,0.8) 0%, rgba(231,76,60,0) 70%);
+            pointer-events: none;
+            transition: all 0.5s ease;
+            z-index: -1;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e0e6ed;
+            transition: .4s;
+            border-radius: 30px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:focus + .toggle-slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+        
+        .toggle-label {
+            margin-left: 70px;
+            cursor: pointer;
+        }
+        
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            background-color: rgba(74, 107, 175, 0.1);
+            color: var(--primary-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 16px;
+            font-size: 0.9rem;
+        }
+        
+        .chip span {
+            margin-right: 5px;
+        }
+        
+        .chip button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 1rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="app-title">
+            <i class="fas fa-microchip"></i>
+            <span>VHDL Code Generator</span>
+        </div>
+        <div class="app-subtitle">Create VHDL components with ease</div>
+        <div class="version-tag">v2.0</div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <div class="input-section">
+                <h2><i class="fas fa-sliders-h"></i> Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="entity-title">Entity Title</label>
+                    <input type="text" id="entity-title" class="input-field" placeholder="e.g., Mux_Entity" value="Entity_1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="architecture-title">Architecture Title</label>
+                    <input type="text" id="architecture-title" class="input-field" placeholder="e.g., Behavioral" value="Arch_1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Code Type</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="function-type" name="code-type" value="function" checked>
+                            <label for="function-type">Function</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="procedure-type" name="code-type" value="procedure">
+                            <label for="procedure-type">Procedure</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="function-title">Function/Procedure Title</label>
+                    <input type="text" id="function-title" class="input-field" placeholder="e.g., process_data" value="fun_1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="component-type">Component Type</label>
+                    <div class="custom-select-wrapper">
+                        <select id="component-type" class="input-field">
+                            <option value="mux">Multiplexer (MUX)</option>
+                            <option value="demux">Demultiplexer (DeMUX)</option>
+                            <option value="decoder">Decoder</option>
+                            <option value="encoder">Encoder</option>
+                            <option value="sipo">Shift Register (SIPO)</option>
+                            <option value="piso">Shift Register (PISO)</option>
+                            <option value="sram">SRAM</option>
+                            <option value="clock">Clock Divider</option>
+                        </select>
+                        <div class="neon-glow"></div>
+                    </div>
+                </div>
+                
+                <div class="component-specific">
+                    <div class="component-specific-title">Component Parameters</div>
+                    
+                    <!-- MUX specific -->
+                    <div id="mux-params" class="component-params">
+                        <div class="form-group">
+                            <label for="mux-inputs">Number of Input Channels</label>
+                            <select id="mux-inputs" class="input-field">
+                                <option value="2">2</option>
+                                <option value="4" selected>4</option>
+                                <option value="8">8</option>
+                                <option value="16">16</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group custom-input-group" style="display: none;">
+                            <label for="mux-custom-inputs">Custom Number of Inputs</label>
+                            <input type="number" id="mux-custom-inputs" class="input-field" min="2" max="128" placeholder="Enter value between 2-128">
+                        </div>
+                        <div class="form-group">
+                            <label for="mux-width">Width of Channels (bits)</label>
+                            <select id="mux-width" class="input-field">
+                                <option value="1">1 (standard)</option>
+                                <option value="4">4</option>
+                                <option value="8" selected>8</option>
+                                <option value="16">16</option>
+                                <option value="32">32</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group custom-width-group" style="display: none;">
+                            <label for="mux-custom-width">Custom Width (bits)</label>
+                            <input type="number" id="mux-custom-width" class="input-field" min="1" max="128" placeholder="Enter value between 1-128">
+                        </div>
+                    </div>
+                    
+                    <!-- DeMUX specific -->
+                    <div id="demux-params" class="component-params" style="display: none;">
+                        <div class="form-group">
+                            <label for="demux-outputs">Number of Output Channels</label>
+                            <select id="demux-outputs" class="input-field">
+                                <option value="2">2</option>
+                                <option value="4" selected>4</option>
+                                <option value="8">8</option>
+                                <option value="16">16</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="demux-width">Width of Channels (bits)</label>
+                            <select id="demux-width" class="input-field">
+                                <option value="1">1 (standard)</option>
+                                <option value="4">4</option>
+                                <option value="8" selected>8</option>
+                                <option value="16">16</option>
+                                <option value="32">32</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Decoder specific -->
+                    <div id="decoder-params" class="component-params" style="display: none;">
+                        <div class="form-group">
+                            <label for="decoder-inputs">Number of Input Bits</label>
+                            <select id="decoder-inputs" class="input-field">
+                                <option value="2">2 (4 outputs)</option>
+                                <option value="3">3 (8 outputs)</option>
+                                <option value="4" selected>4 (16 outputs)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Encoder specific -->
+                    <div id="encoder-params" class="component-params" style="display: none;">
+                        <div class="form-group">
+                            <label for="encoder-inputs">Number of Input Lines</label>
+                            <select id="encoder-inputs" class="input-field">
+                                <option value="4">4 (2 outputs)</option>
+                                <option value="8">8 (3 outputs)</option>
+                                <option value="16" selected>16 (4 outputs)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="encoder-priority">Priority Encoding</label>
+                            <div class="toggle-container">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="encoder-priority">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">Enable Priority</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SIPO specific -->
+                    <div id="sipo-params" class="component-params" style="display: none;">
+                        <div class="form-group">
+                            <label for="sipo-width">Register Width (bits)</label>
+                            <select id="sipo-width" class="input-field">
+                                <option value="4">4</option>
+                                <option value="8" selected>8</option>
+                                <option value="16">16</option>
+                                <option value="32">32</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- PISO specific -->
+                    <div id="piso-params" class="component-params" style="display: none;">
+                        <div class="form-group">
+                            <label for="piso-width">Register Width (bits)</label>
+                            <select id="piso-width" class="input-field">
+                                <option value="4">4</option>
+                                <option value="8" selected>8</option>
+                                <option value="16">16</option>
+                                <option value="32">32</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- SRAM specific -->
+                    <div id="sram-params" class="component-params" style="display: none;">
+                        <div class="form-group">
+                            <label for="sram-depth">Memory Depth (words)</label>
+                            <select id="sram-depth" class="input-field">
+                                <option value="16">16</option>
+                                <option value="64">64</option>
+                                <option value="256" selected>256</option>
+                                <option value="1024">1024</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sram-width">Word Width (bits)</label>
+                            <select id="sram-width" class="input-field">
+                                <option value="8" selected>8</option>
+                                <option value="16">16</option>
+                                <option value="32">32</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Clock Divider specific -->
+                    <div id="clock-params" class="component-params" style="display: none;">
+                        <div class="form-group">
+                            <label for="clock-divisor">Division Factor</label>
+                            <select id="clock-divisor" class="input-field">
+                                <option value="2">2</option>
+                                <option value="4">4</option>
+                                <option value="8">8</option>
+                                <option value="10" selected>10</option>
+                                <option value="100">100</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Advanced Options</label>
+                    <div class="toggle-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="add-comments">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Add detailed comments</span>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button id="generate-btn" class="btn btn-primary">
+                        <i class="fas fa-code"></i> Generate VHDL Code
+                    </button>
+                    <button id="save-vhdl-btn" class="btn">
+                        <i class="fas fa-save"></i> Save as VHDL
+                    </button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h2><i class="fas fa-file-code"></i> Generated VHDL Code</h2>
+                
+                <pre id="code-output" class="code-output">-- VHDL code will appear here after generation
+-- Configure your component and click "Generate VHDL Code"</pre>
+                
+                <div class="code-actions">
+                    <button id="copy-btn" class="code-action-btn" title="Copy to clipboard">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button id="download-btn" class="code-action-btn" title="Download as VHDL file">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+                
+                <div class="animated-bg">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Code copied to clipboard!</span>
+    </div>
+    
+    <script>
+     
+     document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide component parameters based on selection
+    const componentTypeSelect = document.getElementById('component-type');
+    const componentParams = document.querySelectorAll('.component-params');
+    
+    componentTypeSelect.addEventListener('change', function() {
+        componentParams.forEach(param => param.style.display = 'none');
+        const selectedComponent = this.value;
+        document.getElementById(`${selectedComponent}-params`).style.display = 'block';
+    });
+    
+    // Custom inputs handling for MUX
+    const muxInputsSelect = document.getElementById('mux-inputs');
+    const customInputGroup = document.querySelector('.custom-input-group');
+    
+    muxInputsSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customInputGroup.style.display = 'block';
+        } else {
+            customInputGroup.style.display = 'none';
+        }
+    });
+    
+    const muxWidthSelect = document.getElementById('mux-width');
+    const customWidthGroup = document.querySelector('.custom-width-group');
+    
+    muxWidthSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customWidthGroup.style.display = 'block';
+        } else {
+            customWidthGroup.style.display = 'none';
+        }
+    });
+    
+    // For DeMUX custom outputs
+    const demuxOutputsSelect = document.getElementById('demux-outputs');
+    const demuxCustomOutputsGroup = document.createElement('div');
+    demuxCustomOutputsGroup.className = 'form-group custom-output-group';
+    demuxCustomOutputsGroup.style.display = 'none';
+    demuxCustomOutputsGroup.innerHTML = `
+        <label for="demux-custom-outputs">Custom Number of Outputs</label>
+        <input type="number" id="demux-custom-outputs" class="input-field" min="2" max="128" placeholder="Enter value between 2-128">
+    `;
+    document.getElementById('demux-params').appendChild(demuxCustomOutputsGroup);
+
+    demuxOutputsSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            demuxCustomOutputsGroup.style.display = 'block';
+        } else {
+            demuxCustomOutputsGroup.style.display = 'none';
+        }
+    });
+
+    // For DeMUX custom width
+    const demuxWidthSelect = document.getElementById('demux-width');
+    const demuxCustomWidthGroup = document.createElement('div');
+    demuxCustomWidthGroup.className = 'form-group custom-width-group';
+    demuxCustomWidthGroup.style.display = 'none';
+    demuxCustomWidthGroup.innerHTML = `
+        <label for="demux-custom-width">Custom Width (bits)</label>
+        <input type="number" id="demux-custom-width" class="input-field" min="1" max="128" placeholder="Enter value between 1-128">
+    `;
+    document.getElementById('demux-params').appendChild(demuxCustomWidthGroup);
+
+    demuxWidthSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            demuxCustomWidthGroup.style.display = 'block';
+        } else {
+            demuxCustomWidthGroup.style.display = 'none';
+        }
+    });
+
+    // For Decoder custom inputs
+    const decoderInputsSelect = document.getElementById('decoder-inputs');
+    const decoderCustomInputsGroup = document.createElement('div');
+    decoderCustomInputsGroup.className = 'form-group custom-input-group';
+    decoderCustomInputsGroup.style.display = 'none';
+    decoderCustomInputsGroup.innerHTML = `
+        <label for="decoder-custom-inputs">Custom Number of Input Bits</label>
+        <input type="number" id="decoder-custom-inputs" class="input-field" min="1" max="8" placeholder="Enter value between 1-8">
+    `;
+    document.getElementById('decoder-params').appendChild(decoderCustomInputsGroup);
+
+    decoderInputsSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            decoderCustomInputsGroup.style.display = 'block';
+        } else {
+            decoderCustomInputsGroup.style.display = 'none';
+        }
+    });
+
+    // For Encoder custom inputs
+    const encoderInputsSelect = document.getElementById('encoder-inputs');
+    const encoderCustomInputsGroup = document.createElement('div');
+    encoderCustomInputsGroup.className = 'form-group custom-input-group';
+    encoderCustomInputsGroup.style.display = 'none';
+    encoderCustomInputsGroup.innerHTML = `
+        <label for="encoder-custom-inputs">Custom Number of Input Lines</label>
+        <input type="number" id="encoder-custom-inputs" class="input-field" min="2" max="128" placeholder="Enter value between 2-128">
+    `;
+    document.getElementById('encoder-params').appendChild(encoderCustomInputsGroup);
+
+    encoderInputsSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            encoderCustomInputsGroup.style.display = 'block';
+        } else {
+            encoderCustomInputsGroup.style.display = 'none';
+        }
+    });
+
+    // For SIPO custom width
+    const sipoWidthSelect = document.getElementById('sipo-width');
+    const sipoCustomWidthGroup = document.createElement('div');
+    sipoCustomWidthGroup.className = 'form-group custom-width-group';
+    sipoCustomWidthGroup.style.display = 'none';
+    sipoCustomWidthGroup.innerHTML = `
+        <label for="sipo-custom-width">Custom Register Width (bits)</label>
+        <input type="number" id="sipo-custom-width" class="input-field" min="2" max="128" placeholder="Enter value between 2-128">
+    `;
+    document.getElementById('sipo-params').appendChild(sipoCustomWidthGroup);
+
+    sipoWidthSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            sipoCustomWidthGroup.style.display = 'block';
+        } else {
+            sipoCustomWidthGroup.style.display = 'none';
+        }
+    });
+
+    // For PISO custom width
+    const pisoWidthSelect = document.getElementById('piso-width');
+    const pisoCustomWidthGroup = document.createElement('div');
+    pisoCustomWidthGroup.className = 'form-group custom-width-group';
+    pisoCustomWidthGroup.style.display = 'none';
+    pisoCustomWidthGroup.innerHTML = `
+        <label for="piso-custom-width">Custom Register Width (bits)</label>
+        <input type="number" id="piso-custom-width" class="input-field" min="2" max="128" placeholder="Enter value between 2-128">
+    `;
+    document.getElementById('piso-params').appendChild(pisoCustomWidthGroup);
+
+    pisoWidthSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            pisoCustomWidthGroup.style.display = 'block';
+        } else {
+            pisoCustomWidthGroup.style.display = 'none';
+        }
+    });
+
+    // For SRAM custom depth
+    const sramDepthSelect = document.getElementById('sram-depth');
+    const sramCustomDepthGroup = document.createElement('div');
+    sramCustomDepthGroup.className = 'form-group custom-depth-group';
+    sramCustomDepthGroup.style.display = 'none';
+    sramCustomDepthGroup.innerHTML = `
+        <label for="sram-custom-depth">Custom Memory Depth (words)</label>
+        <input type="number" id="sram-custom-depth" class="input-field" min="2" max="4096" placeholder="Enter value between 2-4096">
+    `;
+    document.getElementById('sram-params').appendChild(sramCustomDepthGroup);
+
+    sramDepthSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            sramCustomDepthGroup.style.display = 'block';
+        } else {
+            sramCustomDepthGroup.style.display = 'none';
+        }
+    });
+
+    // For SRAM custom width
+    const sramWidthSelect = document.getElementById('sram-width');
+    const sramCustomWidthGroup = document.createElement('div');
+    sramCustomWidthGroup.className = 'form-group custom-width-group';
+    sramCustomWidthGroup.style.display = 'none';
+    sramCustomWidthGroup.innerHTML = `
+        <label for="sram-custom-width">Custom Word Width (bits)</label>
+        <input type="number" id="sram-custom-width" class="input-field" min="1" max="128" placeholder="Enter value between 1-128">
+    `;
+    document.getElementById('sram-params').appendChild(sramCustomWidthGroup);
+
+    sramWidthSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            sramCustomWidthGroup.style.display = 'block';
+        } else {
+            sramCustomWidthGroup.style.display = 'none';
+        }
+    });
+
+    // For Clock Divider custom divisor
+    const clockDivisorSelect = document.getElementById('clock-divisor');
+    const clockCustomDivisorGroup = document.createElement('div');
+    clockCustomDivisorGroup.className = 'form-group custom-divisor-group';
+    clockCustomDivisorGroup.style.display = 'none';
+    clockCustomDivisorGroup.innerHTML = `
+        <label for="clock-custom-divisor">Custom Division Factor</label>
+        <input type="number" id="clock-custom-divisor" class="input-field" min="2" max="1000000" placeholder="Enter value between 2-1000000">
+    `;
+    document.getElementById('clock-params').appendChild(clockCustomDivisorGroup);
+
+    clockDivisorSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            clockCustomDivisorGroup.style.display = 'block';
+        } else {
+            clockCustomDivisorGroup.style.display = 'none';
+        }
+    });
+    
+    // Helper functions for getting values
+    function getMuxInputCount() {
+        return document.getElementById('mux-inputs').value === 'custom' ? 
+            parseInt(document.getElementById('mux-custom-inputs')?.value || 4) : 
+            parseInt(document.getElementById('mux-inputs').value);
+    }
+    
+    function getMuxWidth() {
+        return document.getElementById('mux-width').value === 'custom' ? 
+            parseInt(document.getElementById('mux-custom-width')?.value || 8) : 
+            parseInt(document.getElementById('mux-width').value);
+    }
+            
+    // Generate code button
+    const generateBtn = document.getElementById('generate-btn');
+    const codeOutput = document.getElementById('code-output');
+    
+    generateBtn.addEventListener('click', function() {
+        const entityTitle = document.getElementById('entity-title').value || 'Entity_1';
+        const architectureTitle = document.getElementById('architecture-title').value || 'Arch_1';
+        const codeType = document.querySelector('input[name="code-type"]:checked').value;
+        const functionTitle = document.getElementById('function-title').value || 'fun_1';
+        const componentType = componentTypeSelect.value;
+        const addComments = document.getElementById('add-comments').checked;
+        
+        let code = '';
+        
+        // Generate comment header
+        if (addComments) {
+            code += '-- =========================================================================\n';
+            code += `-- VHDL Code Generator v2.0\n`;
+            code += `-- Component: ${getComponentFullName(componentType)}\n`;
+            code += `-- Generated: ${new Date().toLocaleString()}\n`;
+            code += '-- =========================================================================\n\n';
+        }
+        
+        // Add library inclusions
+        code += 'library IEEE;\n';
+        code += 'use IEEE.STD_LOGIC_1164.ALL;\n';
+        code += 'use IEEE.NUMERIC_STD.ALL;\n\n';
+        
+        // Generate entity declaration based on component type
+        code += generateEntityDeclaration(componentType, entityTitle);
+        
+        // Generate architecture
+        code += generateArchitecture(componentType, architectureTitle, entityTitle, codeType, functionTitle, addComments);
+        
+        // Display the generated code
+        codeOutput.textContent = code;
+        
+        // Add animation effect
+        codeOutput.classList.add('highlight');
+        setTimeout(() => {
+            codeOutput.classList.remove('highlight');
+        }, 500);
+    });
+    
+    // Copy to clipboard functionality
+    const copyBtn = document.getElementById('copy-btn');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    
+    copyBtn.addEventListener('click', function() {
+        const text = codeOutput.textContent;
+        navigator.clipboard.writeText(text).then(function() {
+            toastMessage.textContent = 'Code copied to clipboard!';
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }, function() {
+            toastMessage.textContent = 'Failed to copy code!';
+            toast.classList.add('show');
+            toast.style.backgroundColor = '#e74c3c';
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        });
+    });
+    
+    // Download as VHDL file
+    const downloadBtn = document.getElementById('download-btn');
+    const saveVhdlBtn = document.getElementById('save-vhdl-btn');
+    
+    function downloadVhdlCode() {
+        const text = codeOutput.textContent;
+        const entityTitle = document.getElementById('entity-title').value || 'Entity_1';
+        const filename = `${entityTitle.toLowerCase()}.vhd`;
+        
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 0);
+        
+        // Show toast
+        toastMessage.textContent = `File "${filename}" downloaded!`;
+        toast.classList.add('show');
+        toast.style.backgroundColor = '#27ae60';
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.style.backgroundColor = '#27ae60';
+        }, 3000);
+    }
+    
+    downloadBtn.addEventListener('click', downloadVhdlCode);
+    saveVhdlBtn.addEventListener('click', downloadVhdlCode);
+    
+    // Helper functions for code generation
+    function getComponentFullName(componentType) {
+        const componentNames = {
+            'mux': 'Multiplexer (MUX)',
+            'demux': 'Demultiplexer (DeMUX)',
+            'decoder': 'Decoder',
+            'encoder': 'Encoder',
+            'sipo': 'Shift Register (SIPO)',
+            'piso': 'Shift Register (PISO)',
+            'sram': 'Static RAM (SRAM)',
+            'clock': 'Clock Divider'
+        };
+        return componentNames[componentType] || componentType;
+    }
+    
+    function generateEntityDeclaration(componentType, entityTitle) {
+        let entity = `entity ${entityTitle} is\n`;
+        entity += '    Port (\n';
+        
+        switch(componentType) {
+            case 'mux':
+                const muxInputs = getMuxInputCount();
+                const muxWidth = getMuxWidth();
+                const selBits = Math.ceil(Math.log2(muxInputs));
+                
+                for (let i = 0; i < muxInputs; i++) {
+                    if (muxWidth === 1) {
+                        entity += `        in${i} : in STD_LOGIC;\n`;
+                    } else {
+                        entity += `        in${i} : in STD_LOGIC_VECTOR(${muxWidth-1} downto 0);\n`;
+                    }
+                }
+                
+                if (selBits === 1) {
+                    entity += '        sel : in STD_LOGIC;\n';
+                } else {
+                    entity += `        sel : in STD_LOGIC_VECTOR(${selBits-1} downto 0);\n`;
+                }
+                
+                if (muxWidth === 1) {
+                    entity += '        output : out STD_LOGIC\n';
+                } else {
+                    entity += `        output : out STD_LOGIC_VECTOR(${muxWidth-1} downto 0)\n`;
+                }
+                break;
+                
+            case 'demux':
+                const demuxOutputs = document.getElementById('demux-outputs').value === 'custom' ? 
+                    parseInt(document.getElementById('demux-custom-outputs')?.value || 4) : 
+                    parseInt(document.getElementById('demux-outputs').value);
+                const demuxWidth = document.getElementById('demux-width').value === 'custom' ? 
+                    parseInt(document.getElementById('demux-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('demux-width').value);
+                const demuxSelBits = Math.ceil(Math.log2(demuxOutputs));
+                
+                if (demuxWidth === 1) {
+                    entity += '        input : in STD_LOGIC;\n';
+                } else {
+                    entity += `        input : in STD_LOGIC_VECTOR(${demuxWidth-1} downto 0);\n`;
+                }
+                
+                if (demuxSelBits === 1) {
+                    entity += '        sel : in STD_LOGIC;\n';
+                } else {
+                    entity += `        sel : in STD_LOGIC_VECTOR(${demuxSelBits-1} downto 0);\n`;
+                }
+                
+                for (let i = 0; i < demuxOutputs; i++) {
+                    const isLast = i === demuxOutputs - 1;
+                    if (demuxWidth === 1) {
+                        entity += `        out${i} : out STD_LOGIC${isLast ? '' : ';'}\n`;
+                    } else {
+                        entity += `        out${i} : out STD_LOGIC_VECTOR(${demuxWidth-1} downto 0)${isLast ? '' : ';'}\n`;
+                    }
+                }
+                break;
+                
+            case 'decoder':
+                const decoderInputs = document.getElementById('decoder-inputs').value === 'custom' ? 
+                    parseInt(document.getElementById('decoder-custom-inputs')?.value || 4) : 
+                    parseInt(document.getElementById('decoder-inputs').value);
+                const decoderOutputs = Math.pow(2, decoderInputs);
+                
+                if (decoderInputs === 1) {
+                    entity += '        input : in STD_LOGIC;\n';
+                } else {
+                    entity += `        input : in STD_LOGIC_VECTOR(${decoderInputs-1} downto 0);\n`;
+                }
+                entity += '        enable : in STD_LOGIC;\n';
+                entity += `        output : out STD_LOGIC_VECTOR(${decoderOutputs-1} downto 0)\n`;
+                break;
+                
+            case 'encoder':
+                const encoderInputs = document.getElementById('encoder-inputs').value === 'custom' ? 
+                    parseInt(document.getElementById('encoder-custom-inputs')?.value || 16) : 
+                    parseInt(document.getElementById('encoder-inputs').value);
+                const encoderOutputs = Math.ceil(Math.log2(encoderInputs));
+                const isPriority = document.getElementById('encoder-priority').checked;
+                
+                entity += `        input : in STD_LOGIC_VECTOR(${encoderInputs-1} downto 0);\n`;
+                entity += '        enable : in STD_LOGIC;\n';
+                if (isPriority) {
+                    entity += '        valid : out STD_LOGIC;\n';
+                }
+                entity += `        output : out STD_LOGIC_VECTOR(${encoderOutputs-1} downto 0)\n`;
+                break;
+                
+            case 'sipo':
+                const sipoWidth = document.getElementById('sipo-width').value === 'custom' ? 
+                    parseInt(document.getElementById('sipo-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('sipo-width').value);
+                
+                entity += '        clk : in STD_LOGIC;\n';
+                entity += '        reset : in STD_LOGIC;\n';
+                entity += '        serial_in : in STD_LOGIC;\n';
+                entity += `        parallel_out : out STD_LOGIC_VECTOR(${sipoWidth-1} downto 0)\n`;
+                break;
+                
+            case 'piso':
+                const pisoWidth = document.getElementById('piso-width').value === 'custom' ? 
+                    parseInt(document.getElementById('piso-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('piso-width').value);
+                
+                entity += '        clk : in STD_LOGIC;\n';
+                entity += '        reset : in STD_LOGIC;\n';
+                entity += '        load : in STD_LOGIC;\n';
+                entity += `        parallel_in : in STD_LOGIC_VECTOR(${pisoWidth-1} downto 0);\n`;
+                entity += '        serial_out : out STD_LOGIC\n';
+                break;
+                
+            case 'sram':
+                const sramDepth = document.getElementById('sram-depth').value === 'custom' ? 
+                    parseInt(document.getElementById('sram-custom-depth')?.value || 256) : 
+                    parseInt(document.getElementById('sram-depth').value);
+                const sramWidth = document.getElementById('sram-width').value === 'custom' ? 
+                    parseInt(document.getElementById('sram-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('sram-width').value);
+                const addrWidth = Math.ceil(Math.log2(sramDepth));
+                
+                entity += '        clk : in STD_LOGIC;\n';
+                entity += '        reset : in STD_LOGIC;\n';
+                entity += '        write_en : in STD_LOGIC;\n';
+                entity += `        addr : in STD_LOGIC_VECTOR(${addrWidth-1} downto 0);\n`;
+                entity += `        data_in : in STD_LOGIC_VECTOR(${sramWidth-1} downto 0);\n`;
+                entity += `        data_out : out STD_LOGIC_VECTOR(${sramWidth-1} downto 0)\n`;
+                break;
+                
+            case 'clock':
+                const clockDivisor = document.getElementById('clock-divisor').value === 'custom' ? 
+                    parseInt(document.getElementById('clock-custom-divisor')?.value || 10) : 
+                    parseInt(document.getElementById('clock-divisor').value);
+                
+                entity += '        clk_in : in STD_LOGIC;\n';
+                entity += '        reset : in STD_LOGIC;\n';
+                entity += '        clk_out : out STD_LOGIC\n';
+                break;
+        }
+        
+        entity += '    );\n';
+        entity += 'end ' + entityTitle + ';\n\n';
+        
+        return entity;
+    }
+    
+    function generateArchitecture(componentType, architectureTitle, entityTitle, codeType, functionTitle, addComments) {
+        let arch = `architecture ${architectureTitle} of ${entityTitle} is\n`;
+        
+        // Add function or procedure declaration
+        if (codeType === 'function') {
+            arch += generateFunction(componentType, functionTitle, addComments);
+        } else {
+            arch += generateProcedure(componentType, functionTitle, addComments);
+        }
+        
+        // Begin architecture body
+        arch += 'begin\n';
+        
+        // Add process or direct signal assignment based on component
+        arch += generateProcesses(componentType, codeType, functionTitle, addComments);
+        
+        // End architecture
+        arch += 'end ' + architectureTitle + ';\n';
+        
+        return arch;
+    }
+    
+    function generateFunction(componentType, functionTitle, addComments) {
+        let func = '';
+        
+        switch(componentType) {
+            case 'mux':
+                const muxInputs = getMuxInputCount();
+                const muxWidth = getMuxWidth();
+                const selBits = Math.ceil(Math.log2(muxInputs));
+                
+                if (addComments) {
+                    func += '    -- Function to select one of the inputs based on select lines\n';
+                }
+                
+                if (muxWidth === 1) {
+                    func += `    function ${functionTitle}(`;
+                    for (let i = 0; i < muxInputs; i++) {
+                        func += `input${i} : STD_LOGIC; `;
+                    }
+                    if (selBits === 1) {
+                        func += 'sel : STD_LOGIC) return STD_LOGIC is\n';
+                    } else {
+                        func += `sel : STD_LOGIC_VECTOR(${selBits-1} downto 0)) return STD_LOGIC is\n`;
+                    }
+                    func += '    begin\n';
+                    
+                    if (selBits === 1) {
+                        func += '        if sel = \'0\' then\n';
+                        func += '            return input0;\n';
+                        func += '        else\n';
+                        func += '            return input1;\n';
+                        func += '        end if;\n';
+                    } else {
+                        func += '        case sel is\n';
+                        for (let i = 0; i < muxInputs; i++) {
+                            func += `            when "${i.toString(2).padStart(selBits, '0')}" => return input${i};\n`;
+                        }
+                        func += '            when others => return \'0\';\n';
+                        func += '        end case;\n';
+                    }
+                } else {
+                    func += `    function ${functionTitle}(`;
+                    for (let i = 0; i < muxInputs; i++) {
+                        func += `input${i} : STD_LOGIC_VECTOR(${muxWidth-1} downto 0); `;
+                    }
+                    if (selBits === 1) {
+                        func += `sel : STD_LOGIC) return STD_LOGIC_VECTOR(${muxWidth-1} downto 0) is\n`;
+                    } else {
+                        func += `sel : STD_LOGIC_VECTOR(${selBits-1} downto 0)) return STD_LOGIC_VECTOR(${muxWidth-1} downto 0) is\n`;
+                    }
+                    func += '    begin\n';
+                    
+                    if (selBits === 1) {
+                        func += '        if sel = \'0\' then\n';
+                        func += '            return input0;\n';
+                        func += '        else\n';
+                        func += '            return input1;\n';
+                        func += '        end if;\n';
+                    } else {
+                        func += '        case sel is\n';
+                        for (let i = 0; i < muxInputs; i++) {
+                            func += `            when "${i.toString(2).padStart(selBits, '0')}" => return input${i};\n`;
+                        }
+                        func += `            when others => return (others => '0');\n`;
+                        func += '        end case;\n';
+                    }
+                }
+                func += '    end function;\n\n';
+                break;
+                
+            case 'demux':
+                const demuxOutputs = document.getElementById('demux-outputs').value === 'custom' ? 
+                    parseInt(document.getElementById('demux-custom-outputs')?.value || 4) : 
+                    parseInt(document.getElementById('demux-outputs').value);
+                const demuxWidth = document.getElementById('demux-width').value === 'custom' ? 
+                    parseInt(document.getElementById('demux-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('demux-width').value);
+                const demuxSelBits = Math.ceil(Math.log2(demuxOutputs));
+                
+                if (addComments) {
+                    func += '    -- Function to route input to one of the outputs based on select lines\n';
+                }
+                
+                if (demuxWidth === 1) {
+                    func += `    function ${functionTitle}(input : STD_LOGIC; `;
+                    if (demuxSelBits === 1) {
+                        func += 'sel : STD_LOGIC) return STD_LOGIC_VECTOR(1 downto 0) is\n';
+                        func += '        variable result : STD_LOGIC_VECTOR(1 downto 0) := (others => \'0\');\n';
+                    } else {
+                        func += `sel : STD_LOGIC_VECTOR(${demuxSelBits-1} downto 0)) return STD_LOGIC_VECTOR(${demuxOutputs-1} downto 0) is\n`;
+                        func += `        variable result : STD_LOGIC_VECTOR(${demuxOutputs-1} downto 0) := (others => '0');\n`;
+                    }
+                    func += '    begin\n';
+                    
+                    if (demuxSelBits === 1) {
+                        func += '        if sel = \'0\' then\n';
+                        func += '            result(0) := input;\n';
+                        func += '        else\n';
+                        func += '            result(1) := input;\n';
+                        func += '        end if;\n';
+                    } else {
+                        func += '        case sel is\n';
+                        for (let i = 0; i < demuxOutputs; i++) {
+                            func += `            when "${i.toString(2).padStart(demuxSelBits, '0')}" => result(${i}) := input;\n`;
+                        }
+                        func += '            when others => result := (others => \'0\');\n';
+                        func += '        end case;\n';
+                    }
+                } else {
+                    func += `    function ${functionTitle}(input : STD_LOGIC_VECTOR(${demuxWidth-1} downto 0); `;
+                    if (demuxSelBits === 1) {
+                        func += `sel : STD_LOGIC) return STD_LOGIC_VECTOR((${demuxWidth}*2)-1 downto 0) is\n`;
+                        func += `        variable result : STD_LOGIC_VECTOR((${demuxWidth}*2)-1 downto 0) := (others => '0');\n`;
+                    } else {
+                        func += `sel : STD_LOGIC_VECTOR(${demuxSelBits-1} downto 0)) return STD_LOGIC_VECTOR((${demuxWidth}*${demuxOutputs})-1 downto 0) is\n`;
+                        func += `        variable result : STD_LOGIC_VECTOR((${demuxWidth}*${demuxOutputs})-1 downto 0) := (others => '0');\n`;
+                    }
+                    func += '    begin\n';
+                    
+                    if (demuxSelBits === 1) {
+                        func += '        if sel = \'0\' then\n';
+                        func += `            result(${demuxWidth-1} downto 0) := input;\n`;
+                        func += '        else\n';
+                        func += `            result((2*${demuxWidth})-1 downto ${demuxWidth}) := input;\n`;
+                        func += '        end if;\n';
+                    } else {
+                        func += '        case sel is\n';
+                        for (let i = 0; i < demuxOutputs; i++) {
+                            func += `            when "${i.toString(2).padStart(demuxSelBits, '0')}" => result(${i*demuxWidth + demuxWidth - 1} downto ${i*demuxWidth}) := input;\n`;
+                        }
+                        func += '            when others => result := (others => \'0\');\n';
+                        func += '        end case;\n';
+                    }
+                }
+                func += '        return result;\n';
+                func += '    end function;\n\n';
+                break;
+                
+            case 'decoder':
+                const decoderInputs = document.getElementById('decoder-inputs').value === 'custom' ? 
+                    parseInt(document.getElementById('decoder-custom-inputs')?.value || 4) : 
+                    parseInt(document.getElementById('decoder-inputs').value);
+                const decoderOutputs = Math.pow(2, decoderInputs);
+                
+                if (addComments) {
+                    func += '    -- Function to decode binary inputs to one-hot outputs\n';
+                }
+                
+                func += `    function ${functionTitle}(`;
+                if (decoderInputs === 1) {
+                    func += 'input : STD_LOGIC; ';
+                } else {
+                    func += `input : STD_LOGIC_VECTOR(${decoderInputs-1} downto 0); `;
+                }
+                func += `enable : STD_LOGIC) return STD_LOGIC_VECTOR(${decoderOutputs-1} downto 0) is\n`;
+                func += `        variable result : STD_LOGIC_VECTOR(${decoderOutputs-1} downto 0) := (others => '0');\n`;
+                func += '    begin\n';
+                func += '        if enable = \'1\' then\n';
+                
+                if (decoderInputs === 1) {
+                    func += '            if input = \'0\' then\n';
+                    func += '                result(0) := \'1\';\n';
+                    func += '            else\n';
+                    func += '                result(1) := \'1\';\n';
+                    func += '            end if;\n';
+                } else {
+                    func += '            result(to_integer(unsigned(input))) := \'1\';\n';
+                }
+                
+                func += '        end if;\n';
+                func += '        return result;\n';
+                func += '    end function;\n\n';
+                break;
+                
+            case 'encoder':
+                const encoderInputs = document.getElementById('encoder-inputs').value === 'custom' ? 
+                    parseInt(document.getElementById('encoder-custom-inputs')?.value || 16) : 
+                    parseInt(document.getElementById('encoder-inputs').value);
+                const encoderOutputs = Math.ceil(Math.log2(encoderInputs));
+                const isPriority = document.getElementById('encoder-priority').checked;
+                
+                if (addComments) {
+                    func += '    -- Function to encode one-hot inputs to binary outputs\n';
+                }
+                
+                func += `    function ${functionTitle}(`;
+                func += `input : STD_LOGIC_VECTOR(${encoderInputs-1} downto 0); `;
+                func += `enable : STD_LOGIC) return STD_LOGIC_VECTOR(${isPriority ? encoderOutputs : encoderOutputs-1} downto 0) is\n`;
+                
+                if (isPriority) {
+                    func += `        variable result : STD_LOGIC_VECTOR(${encoderOutputs} downto 0) := (others => '0');\n`;
+                } else {
+                    func += `        variable result : STD_LOGIC_VECTOR(${encoderOutputs-1} downto 0) := (others => '0');\n`;
+                }
+                func += '    begin\n';
+                
+                func += '        if enable = \'1\' then\n';
+                
+                if (isPriority) {
+                    func += '            result(result\'high) := \'0\'; -- Valid bit initially 0\n';
+                    func += '            for i in input\'high downto 0 loop\n';
+                    func += '                if input(i) = \'1\' then\n';
+                    func += `                    result(${encoderOutputs-1} downto 0) := std_logic_vector(to_unsigned(i, ${encoderOutputs}));\n`;
+                    func += '                    result(result\'high) := \'1\'; -- Set valid bit\n';
+                    func += '                    exit; -- Priority: take the first (highest) active input\n';
+                    func += '                end if;\n';
+                    func += '            end loop;\n';
+                } else {
+                    func += '            case input is\n';
+                    for (let i = 0; i < encoderInputs; i++) {
+                        let oneHot = Array(encoderInputs).fill('0');
+                        oneHot[i] = '1';
+                        func += `                when "${oneHot.join('')}" => result := "${i.toString(2).padStart(encoderOutputs, '0')}";\n`;
+                    }
+                    func += '                when others => null;\n';
+                    func += '            end case;\n';
+                }
+                
+                func += '        end if;\n';
+                func += '        return result;\n';
+                func += '    end function;\n\n';
+                break;
+                
+            case 'sipo':
+                const sipoWidth = document.getElementById('sipo-width').value === 'custom' ? 
+                    parseInt(document.getElementById('sipo-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('sipo-width').value);
+                
+                if (addComments) {
+                    func += '    -- Function for Serial-In Parallel-Out shifting\n';
+                }
+                
+                func += `    function ${functionTitle}(`;
+                func += 'serial_in : STD_LOGIC; ';
+                func += `reg : STD_LOGIC_VECTOR(${sipoWidth-1} downto 0)) `;
+                func += `return STD_LOGIC_VECTOR(${sipoWidth-1} downto 0) is\n`;
+                func += '    begin\n';
+                func += '        return reg(reg\'high-1 downto 0) & serial_in;\n';
+                func += '    end function;\n\n';
+                
+                // Add registers for state
+                func += `    signal shift_reg : STD_LOGIC_VECTOR(${sipoWidth-1} downto 0) := (others => '0');\n\n`;
+                break;
+                
+            case 'piso':
+                const pisoWidth = document.getElementById('piso-width').value === 'custom' ? 
+                    parseInt(document.getElementById('piso-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('piso-width').value);
+                
+                if (addComments) {
+                    func += '    -- Function for Parallel-In Serial-Out shifting\n';
+                }
+                
+                func += `    function ${functionTitle}(`;
+                func += 'load : STD_LOGIC; ';
+                func += `parallel_in : STD_LOGIC_VECTOR(${pisoWidth-1} downto 0); `;
+                func += `reg : STD_LOGIC_VECTOR(${pisoWidth-1} downto 0)) `;
+                func += `return STD_LOGIC_VECTOR(${pisoWidth-1} downto 0) is\n`;
+                func += '    begin\n';
+                func += '        if load = \'1\' then\n';
+                func += '            return parallel_in;\n';
+                func += '        else\n';
+                func += '            return \'0\' & reg(reg\'high downto 1);\n';
+                func += '        end if;\n';
+                func += '    end function;\n\n';
+                
+                // Add registers for state
+                func += `    signal shift_reg : STD_LOGIC_VECTOR(${pisoWidth-1} downto 0) := (others => '0');\n\n`;
+                break;
+                
+            case 'sram':
+                const sramDepth = document.getElementById('sram-depth').value === 'custom' ? 
+                    parseInt(document.getElementById('sram-custom-depth')?.value || 256) : 
+                    parseInt(document.getElementById('sram-depth').value);
+                const sramWidth = document.getElementById('sram-width').value === 'custom' ? 
+                    parseInt(document.getElementById('sram-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('sram-width').value);
+                const addrWidth = Math.ceil(Math.log2(sramDepth));
+                
+                if (addComments) {
+                    func += '    -- Function for memory read/write operations\n';
+                }
+                
+                func += `    type memory_type is array (0 to ${sramDepth-1}) of STD_LOGIC_VECTOR(${sramWidth-1} downto 0);\n`;
+                func += '    signal memory : memory_type := (others => (others => \'0\'));\n\n';
+                
+                func += `    function ${functionTitle}(`;
+                func += 'write_en : STD_LOGIC; ';
+                func += `addr : STD_LOGIC_VECTOR(${addrWidth-1} downto 0); `;
+                func += `data_in : STD_LOGIC_VECTOR(${sramWidth-1} downto 0); `;
+                func += 'mem : memory_type) ';
+                func += `return STD_LOGIC_VECTOR(${sramWidth-1} downto 0) is\n`;
+                func += '    begin\n';
+                func += '        return mem(to_integer(unsigned(addr)));\n';
+                func += '    end function;\n\n';
+                break;
+                
+            case 'clock':
+                const clockDivisor = document.getElementById('clock-divisor').value === 'custom' ? 
+                    parseInt(document.getElementById('clock-custom-divisor')?.value || 10) : 
+                    parseInt(document.getElementById('clock-divisor').value);
+                
+                if (addComments) {
+                    func += '    -- Function to check if clock should toggle\n';
+                }
+                
+                func += `    function ${functionTitle}(count : integer) return boolean is\n`;
+                func += '    begin\n';
+                func += `        return count = ${Math.floor(clockDivisor/2) - 1};\n`;
+                func += '    end function;\n\n';
+                
+                // Add registers for state
+                func += `    signal counter : integer range 0 to ${clockDivisor-1} := 0;\n`;
+                func += '    signal clk_state : STD_LOGIC := \'0\';\n\n';
+                break;
+        }
+        
+        return func;
+    }
+    
+    function generateProcedure(componentType, functionTitle, addComments) {
+        let proc = '';
+        
+        switch(componentType) {
+            case 'mux':
+                const muxInputs = getMuxInputCount();
+                const muxWidth = getMuxWidth();
+                const selBits = Math.ceil(Math.log2(muxInputs));
+                
+                if (addComments) {
+                    proc += '    -- Procedure to select one of the inputs based on select lines\n';
+                }
+                
+                if (muxWidth === 1) {
+                    proc += `    procedure ${functionTitle}(`;
+                    for (let i = 0; i < muxInputs; i++) {
+                        proc += `input${i} : in STD_LOGIC; `;
+                    }
+                    if (selBits === 1) {
+                        proc += 'sel : in STD_LOGIC; ';
+                    } else {
+                        proc += `sel : in STD_LOGIC_VECTOR(${selBits-1} downto 0); `;
+                    }
+                    proc += 'signal output : out STD_LOGIC) is\n';
+                    proc += '    begin\n';
+                    
+                    if (selBits === 1) {
+                        proc += '        if sel = \'0\' then\n';
+                        proc += '            output <= input0;\n';
+                        proc += '        else\n';
+                        proc += '            output <= input1;\n';
+                        proc += '        end if;\n';
+                    } else {
+                        proc += '        case sel is\n';
+                        for (let i = 0; i < muxInputs; i++) {
+                            proc += `            when "${i.toString(2).padStart(selBits, '0')}" => output <= input${i};\n`;
+                        }
+                        proc += '            when others => output <= \'0\';\n';
+                        proc += '        end case;\n';
+                    }
+                } else {
+                    proc += `    procedure ${functionTitle}(`;
+                    for (let i = 0; i < muxInputs; i++) {
+                        proc += `input${i} : in STD_LOGIC_VECTOR(${muxWidth-1} downto 0); `;
+                    }
+                    if (selBits === 1) {
+                        proc += 'sel : in STD_LOGIC; ';
+                    } else {
+                        proc += `sel : in STD_LOGIC_VECTOR(${selBits-1} downto 0); `;
+                    }
+                    proc += `signal output : out STD_LOGIC_VECTOR(${muxWidth-1} downto 0)) is\n`;
+                    proc += '    begin\n';
+                    
+                    if (selBits === 1) {
+                        proc += '        if sel = \'0\' then\n';
+                        proc += '            output <= input0;\n';
+                        proc += '        else\n';
+                        proc += '            output <= input1;\n';
+                        proc += '        end if;\n';
+                    } else {
+                        proc += '        case sel is\n';
+                        for (let i = 0; i < muxInputs; i++) {
+                            proc += `            when "${i.toString(2).padStart(selBits, '0')}" => output <= input${i};\n`;
+                        }
+                        proc += '            when others => output <= (others => \'0\');\n';
+                        proc += '        end case;\n';
+                    }
+                }
+                proc += '    end procedure;\n\n';
+                break;
+                
+            case 'demux':
+                const demuxOutputs = document.getElementById('demux-outputs').value === 'custom' ? 
+                    parseInt(document.getElementById('demux-custom-outputs')?.value || 4) : 
+                    parseInt(document.getElementById('demux-outputs').value);
+                const demuxWidth = document.getElementById('demux-width').value === 'custom' ? 
+                    parseInt(document.getElementById('demux-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('demux-width').value);
+                const demuxSelBits = Math.ceil(Math.log2(demuxOutputs));
+                
+                if (addComments) {
+                    proc += '    -- Procedure to route input to one of the outputs based on select lines\n';
+                }
+                
+                if (demuxWidth === 1) {
+                    proc += `    procedure ${functionTitle}(input : in STD_LOGIC; `;
+                    if (demuxSelBits === 1) {
+                        proc += 'sel : in STD_LOGIC; ';
+                    } else {
+                        proc += `sel : in STD_LOGIC_VECTOR(${demuxSelBits-1} downto 0); `;
+                    }
+                    
+                    for (let i = 0; i < demuxOutputs; i++) {
+                            proc += `signal out${i} : out STD_LOGIC${i < demuxOutputs-1 ? '; ' : ''}`;
+                        }
+                    
+                    proc += ') is\n';
+                    proc += '    begin\n';
+                    
+                    // Initialize all outputs to '0'
+                    for (let i = 0; i < demuxOutputs; i++) {
+                        proc += `        out${i} <= '0';\n`;
+                    }
+                    
+                    if (demuxSelBits === 1) {
+                        proc += '        if sel = \'0\' then\n';
+                        proc += '            out0 <= input;\n';
+                        proc += '        else\n';
+                        proc += '            out1 <= input;\n';
+                        proc += '        end if;\n';
+                    } else {
+                        proc += '        case sel is\n';
+                        for (let i = 0; i < demuxOutputs; i++) {
+                            proc += `            when "${i.toString(2).padStart(demuxSelBits, '0')}" => out${i} <= input;\n`;
+                        }
+                        proc += '            when others => null;\n';
+                        proc += '        end case;\n';
+                    }
+                } else {
+                    proc += `    procedure ${functionTitle}(input : in STD_LOGIC_VECTOR(${demuxWidth-1} downto 0); `;
+                    if (demuxSelBits === 1) {
+                        proc += 'sel : in STD_LOGIC; ';
+                    } else {
+                        proc += `sel : in STD_LOGIC_VECTOR(${demuxSelBits-1} downto 0); `;
+                    }
+                    
+                    for (let i = 0; i < demuxOutputs; i++) {
+                          proc += `signal out${i} : out STD_LOGIC_VECTOR(${demuxWidth-1} downto 0)${i < demuxOutputs-1 ? '; ' : ''}`;
+                        }
+                    
+                    proc += ') is\n';
+                    proc += '    begin\n';
+                    
+                    // Initialize all outputs to zero
+                    for (let i = 0; i < demuxOutputs; i++) {
+                        proc += `        out${i} <= (others => '0');\n`;
+                    }
+                    
+                    if (demuxSelBits === 1) {
+                        proc += '        if sel = \'0\' then\n';
+                        proc += '            out0 <= input;\n';
+                        proc += '        else\n';
+                        proc += '            out1 <= input;\n';
+                        proc += '        end if;\n';
+                    } else {
+                        proc += '        case sel is\n';
+                        for (let i = 0; i < demuxOutputs; i++) {
+                            proc += `            when "${i.toString(2).padStart(demuxSelBits, '0')}" => out${i} <= input;\n`;
+                        }
+                        proc += '            when others => null;\n';
+                        proc += '        end case;\n';
+                    }
+                }
+                proc += '    end procedure;\n\n';
+                break;
+                
+            case 'decoder':
+                const decoderInputs = document.getElementById('decoder-inputs').value === 'custom' ? 
+                    parseInt(document.getElementById('decoder-custom-inputs')?.value || 4) : 
+                    parseInt(document.getElementById('decoder-inputs').value);
+                const decoderOutputs = Math.pow(2, decoderInputs);
+                
+                if (addComments) {
+                    proc += '    -- Procedure to decode binary inputs to one-hot outputs\n';
+                }
+                
+                proc += `    procedure ${functionTitle}(`;
+                if (decoderInputs === 1) {
+                    proc += 'input : in STD_LOGIC; ';
+                } else {
+                    proc += `input : in STD_LOGIC_VECTOR(${decoderInputs-1} downto 0); `;
+                }
+                proc += 'enable : in STD_LOGIC; ';
+                proc += `signal output : out STD_LOGIC_VECTOR(${decoderOutputs-1} downto 0)) is\n`;
+                proc += '    begin\n';
+                proc += '        output <= (others => \'0\');\n';
+                proc += '        if enable = \'1\' then\n';
+                
+                if (decoderInputs === 1) {
+                    proc += '            if input = \'0\' then\n';
+                    proc += '                output(0) <= \'1\';\n';
+                    proc += '            else\n';
+                    proc += '                output(1) <= \'1\';\n';
+                    proc += '            end if;\n';
+                } else {
+                    proc += '            output(to_integer(unsigned(input))) <= \'1\';\n';
+                }
+                
+                proc += '        end if;\n';
+                proc += '    end procedure;\n\n';
+                break;
+                
+            case 'encoder':
+                const encoderInputs = document.getElementById('encoder-inputs').value === 'custom' ? 
+                    parseInt(document.getElementById('encoder-custom-inputs')?.value || 16) : 
+                    parseInt(document.getElementById('encoder-inputs').value);
+                const encoderOutputs = Math.ceil(Math.log2(encoderInputs));
+                const isPriority = document.getElementById('encoder-priority').checked;
+                
+                if (addComments) {
+                    proc += '    -- Procedure to encode one-hot inputs to binary outputs\n';
+                }
+                
+                proc += `    procedure ${functionTitle}(`;
+                proc += `input : in STD_LOGIC_VECTOR(${encoderInputs-1} downto 0); `;
+                proc += 'enable : in STD_LOGIC; ';
+                if (isPriority) {
+                    proc += 'signal valid : out STD_LOGIC; ';
+                }
+                proc += `signal output : out STD_LOGIC_VECTOR(${encoderOutputs-1} downto 0)) is\n`;
+                proc += '    begin\n';
+                proc += '        output <= (others => \'0\');\n';
+                if (isPriority) {
+                    proc += '        valid <= \'0\';\n';
+                }
+                
+                proc += '        if enable = \'1\' then\n';
+                
+                if (isPriority) {
+                    proc += '            for i in input\'high downto 0 loop\n';
+                    proc += '                if input(i) = \'1\' then\n';
+                    proc += `                    output <= std_logic_vector(to_unsigned(i, ${encoderOutputs}));\n`;
+                    proc += '                    valid <= \'1\';\n';
+                    proc += '                    exit; -- Priority: take the first (highest) active input\n';
+                    proc += '                end if;\n';
+                    proc += '            end loop;\n';
+                } else {
+                    proc += '            case input is\n';
+                    for (let i = 0; i < encoderInputs; i++) {
+                        let oneHot = Array(encoderInputs).fill('0');
+                        oneHot[i] = '1';
+                        proc += `                when "${oneHot.join('')}" => output <= "${i.toString(2).padStart(encoderOutputs, '0')}";\n`;
+                    }
+                    proc += '                when others => null;\n';
+                    proc += '            end case;\n';
+                }
+                
+                proc += '        end if;\n';
+                proc += '    end procedure;\n\n';
+                break;
+
+            case 'sipo':
+                const sipoWidth = document.getElementById('sipo-width').value === 'custom' ? 
+                    parseInt(document.getElementById('sipo-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('sipo-width').value);
+                
+                if (addComments) {
+                    proc += '    -- Procedure for Serial-In Parallel-Out Shift Register\n';
+                }
+                
+                proc += `    procedure ${functionTitle}(`;
+                proc += 'serial_in : in STD_LOGIC; ';
+                proc += `signal shift_reg : inout STD_LOGIC_VECTOR(${sipoWidth-1} downto 0); `;
+                proc += `signal parallel_out : out STD_LOGIC_VECTOR(${sipoWidth-1} downto 0)) is\n`;
+                proc += '    begin\n';
+                proc += '        -- Shift operation: shift left and insert new bit at right\n';
+                proc += '        shift_reg <= shift_reg(shift_reg\'high-1 downto 0) & serial_in;\n';
+                proc += '        parallel_out <= shift_reg;\n';
+                proc += '    end procedure;\n\n';
+                
+                // Add registers for state
+                proc += `    signal shift_reg : STD_LOGIC_VECTOR(${sipoWidth-1} downto 0) := (others => '0');\n\n`;
+                break;
+
+            case 'piso':
+                const pisoWidth = document.getElementById('piso-width').value === 'custom' ? 
+                    parseInt(document.getElementById('piso-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('piso-width').value);
+                
+                if (addComments) {
+                    proc += '    -- Procedure for Parallel-In Serial-Out Shift Register\n';
+                }
+                
+                proc += `    procedure ${functionTitle}(`;
+                proc += 'load : in STD_LOGIC; ';
+                proc += `parallel_in : in STD_LOGIC_VECTOR(${pisoWidth-1} downto 0); `;
+                proc += `signal shift_reg : inout STD_LOGIC_VECTOR(${pisoWidth-1} downto 0); `;
+                proc += 'signal serial_out : out STD_LOGIC) is\n';
+                proc += '    begin\n';
+                proc += '        if load = \'1\' then\n';
+                proc += '            shift_reg <= parallel_in;\n';
+                proc += '        else\n';
+                proc += '            -- Shift operation: shift right and insert 0 at left\n';
+                proc += '            shift_reg <= \'0\' & shift_reg(shift_reg\'high downto 1);\n';
+                proc += '        end if;\n';
+                proc += '        serial_out <= shift_reg(0);\n';
+                proc += '    end procedure;\n\n';
+                
+                // Add registers for state
+                proc += `    signal shift_reg : STD_LOGIC_VECTOR(${pisoWidth-1} downto 0) := (others => '0');\n\n`;
+                break;
+
+            case 'sram':
+                const sramDepth = document.getElementById('sram-depth').value === 'custom' ? 
+                    parseInt(document.getElementById('sram-custom-depth')?.value || 256) : 
+                    parseInt(document.getElementById('sram-depth').value);
+                const sramWidth = document.getElementById('sram-width').value === 'custom' ? 
+                    parseInt(document.getElementById('sram-custom-width')?.value || 8) : 
+                    parseInt(document.getElementById('sram-width').value);
+                const addrWidth = Math.ceil(Math.log2(sramDepth));
+                
+                if (addComments) {
+                    proc += '    -- Procedure for memory read/write operations\n';
+                }
+                
+                proc += `    type memory_type is array (0 to ${sramDepth-1}) of STD_LOGIC_VECTOR(${sramWidth-1} downto 0);\n`;
+                proc += '    signal memory : memory_type := (others => (others => \'0\'));\n\n';
+                
+                proc += `    procedure ${functionTitle}(`;
+                proc += 'write_en : in STD_LOGIC; ';
+                proc += `addr : in STD_LOGIC_VECTOR(${addrWidth-1} downto 0); `;
+                proc += `data_in : in STD_LOGIC_VECTOR(${sramWidth-1} downto 0); `;
+                proc += 'signal memory : inout memory_type; ';
+                proc += `signal data_out : out STD_LOGIC_VECTOR(${sramWidth-1} downto 0)) is\n`;
+                proc += '    begin\n';
+                proc += '        if write_en = \'1\' then\n';
+                proc += '            memory(to_integer(unsigned(addr))) <= data_in;\n';
+                proc += '        end if;\n';
+                proc += '        data_out <= memory(to_integer(unsigned(addr)));\n';
+                proc += '    end procedure;\n\n';
+                break;
+                
+            case 'clock':
+                const clockDivisor = document.getElementById('clock-divisor').value === 'custom' ? 
+                    parseInt(document.getElementById('clock-custom-divisor')?.value || 10) : 
+                    parseInt(document.getElementById('clock-divisor').value);
+                
+                if (addComments) {
+                    proc += '    -- Procedure to divide the clock frequency\n';
+                }
+                
+                proc += `    procedure ${functionTitle}(signal count : inout integer range 0 to ${clockDivisor-1}; signal output : out STD_LOGIC) is\n`;
+                proc += '    begin\n';
+                proc += `        if count = ${clockDivisor-1} then\n`;
+                proc += '            count <= 0;\n';
+                proc += '            output <= not output;\n';
+                proc += '        else\n';
+                proc += '            count <= count + 1;\n';
+                proc += '        end if;\n';
+                proc += '    end procedure;\n\n';
+                
+                // Add registers for state
+                proc += `    signal counter : integer range 0 to ${clockDivisor-1} := 0;\n`;
+                proc += '    signal clk_state : STD_LOGIC := \'0\';\n\n';
+                break;
+        }
+        
+        return proc;
+    }
+    
+    function generateProcesses(componentType, codeType, functionTitle, addComments) {
+        let process = '';
+        
+        if (codeType === 'function') {
+            // Use function approach
+            switch(componentType) {
+                case 'mux':
+                    const muxInputs = getMuxInputCount();
+                    const muxWidth = getMuxWidth();
+                    
+                    if (addComments) {
+                        process += '    -- Output assignment using function\n';
+                    }
+                    
+                    // Input parameters for function call
+                    let params = '';
+                    for (let i = 0; i < muxInputs; i++) {
+                        params += `in${i}, `;
+                    }
+                    params += 'sel';
+                    
+                    process += `    output <= ${functionTitle}(${params});\n`;
+                    break;
+                    
+                case 'demux':
+                    const demuxOutputs = document.getElementById('demux-outputs').value === 'custom' ? 
+                        parseInt(document.getElementById('demux-custom-outputs')?.value || 4) : 
+                        parseInt(document.getElementById('demux-outputs').value);
+                    const demuxWidth = document.getElementById('demux-width').value === 'custom' ? 
+                        parseInt(document.getElementById('demux-custom-width')?.value || 8) : 
+                        parseInt(document.getElementById('demux-width').value);
+                    
+                    if (addComments) {
+                        process += '    -- Process to route the outputs using function\n';
+                    }
+                    
+                    process += '    demux_process: process(input, sel)\n';
+                    process += '        variable result_vec : ';
+                    
+                    if (demuxWidth === 1) {
+                        if (demuxOutputs <= 2) {
+                            process += 'STD_LOGIC_VECTOR(1 downto 0);\n';
+                        } else {
+                            process += `STD_LOGIC_VECTOR(${demuxOutputs-1} downto 0);\n`;
+                        }
+                    } else {
+                        if (demuxOutputs <= 2) {
+                            process += `STD_LOGIC_VECTOR((${demuxWidth}*2)-1 downto 0);\n`;
+                        } else {
+                            process += `STD_LOGIC_VECTOR((${demuxWidth}*${demuxOutputs})-1 downto 0);\n`;
+                        }
+                    }
+                    
+                    process += '    begin\n';
+                    process += `        result_vec := ${functionTitle}(input, sel);\n`;
+                    
+                    // Assign individual outputs
+                    if (demuxWidth === 1) {
+                        for (let i = 0; i < demuxOutputs; i++) {
+                            process += `        out${i} <= result_vec(${i});\n`;
+                        }
+                    } else {
+                        for (let i = 0; i < demuxOutputs; i++) {
+                            process += `        out${i} <= result_vec(${i*demuxWidth + demuxWidth - 1} downto ${i*demuxWidth});\n`;
+                        }
+                    }
+                    
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'decoder':
+                    const decoderInputs = document.getElementById('decoder-inputs').value === 'custom' ? 
+                        parseInt(document.getElementById('decoder-custom-inputs')?.value || 4) : 
+                        parseInt(document.getElementById('decoder-inputs').value);
+                    
+                    if (addComments) {
+                        process += '    -- Output assignment using function\n';
+                    }
+                    
+                    process += `    output <= ${functionTitle}(input, enable);\n`;
+                    break;
+                    
+                case 'encoder':
+                    const encoderInputs = document.getElementById('encoder-inputs').value === 'custom' ? 
+                        parseInt(document.getElementById('encoder-custom-inputs')?.value || 16) : 
+                        parseInt(document.getElementById('encoder-inputs').value);
+                    const isPriority = document.getElementById('encoder-priority').checked;
+                    
+                    if (addComments) {
+                        process += '    -- Output assignment using function\n';
+                    }
+                    
+                    if (isPriority) {
+                        process += '    encoder_process: process(input, enable)\n';
+                        process += '        variable result : STD_LOGIC_VECTOR(output\'length downto 0);\n';
+                        process += '    begin\n';
+                        process += `        result := ${functionTitle}(input, enable);\n`;
+                        process += '        valid <= result(result\'high);\n';
+                        process += '        output <= result(output\'high downto 0);\n';
+                        process += '    end process;\n';
+                    } else {
+                        process += `    output <= ${functionTitle}(input, enable);\n`;
+                    }
+                    break;
+                    
+                case 'sipo':
+                    const sipoWidth = document.getElementById('sipo-width').value === 'custom' ? 
+                        parseInt(document.getElementById('sipo-custom-width')?.value || 8) : 
+                        parseInt(document.getElementById('sipo-width').value);
+                    
+                    if (addComments) {
+                        process += '    -- Process for shift register using function\n';
+                    }
+                    
+                    process += '    sipo_process: process(clk, reset)\n';
+                    process += '    begin\n';
+                    process += '        if reset = \'1\' then\n';
+                    process += '            shift_reg <= (others => \'0\');\n';
+                    process += '            parallel_out <= (others => \'0\');\n';
+                    process += '        elsif rising_edge(clk) then\n';
+                    process += `            shift_reg <= ${functionTitle}(serial_in, shift_reg);\n`;
+                    process += '            parallel_out <= shift_reg;\n';
+                    process += '        end if;\n';
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'piso':
+                    const pisoWidth = document.getElementById('piso-width').value === 'custom' ? 
+                        parseInt(document.getElementById('piso-custom-width')?.value || 8) : 
+                        parseInt(document.getElementById('piso-width').value);
+                    
+                    if (addComments) {
+                        process += '    -- Process for shift register using function\n';
+                    }
+                    
+                    process += '    piso_process: process(clk, reset)\n';
+                    process += '    begin\n';
+                    process += '        if reset = \'1\' then\n';
+                    process += '            shift_reg <= (others => \'0\');\n';
+                    process += '            serial_out <= \'0\';\n';
+                    process += '        elsif rising_edge(clk) then\n';
+                    process += `            shift_reg <= ${functionTitle}(load, parallel_in, shift_reg);\n`;
+                    process += '            serial_out <= shift_reg(0);\n';
+                    process += '        end if;\n';
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'sram':
+                    const sramWidth = document.getElementById('sram-width').value === 'custom' ? 
+                        parseInt(document.getElementById('sram-custom-width')?.value || 8) : 
+                        parseInt(document.getElementById('sram-width').value);
+                    
+                    if (addComments) {
+                        process += '    -- Memory read/write process using function for reading\n';
+                    }
+                    
+                    process += '    sram_process: process(clk, reset)\n';
+                    process += '    begin\n';
+                    process += '        if reset = \'1\' then\n';
+                    process += '            memory <= (others => (others => \'0\'));\n';
+                    process += '            data_out <= (others => \'0\');\n';
+                    process += '        elsif rising_edge(clk) then\n';
+                    process += '            if write_en = \'1\' then\n';
+                    process += '                memory(to_integer(unsigned(addr))) <= data_in;\n';
+                    process += '            end if;\n';
+                    process += `            data_out <= ${functionTitle}(write_en, addr, data_in, memory);\n`;
+                    process += '        end if;\n';
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'clock':
+                    const clockDivisor = document.getElementById('clock-divisor').value === 'custom' ? 
+                        parseInt(document.getElementById('clock-custom-divisor')?.value || 10) : 
+                        parseInt(document.getElementById('clock-divisor').value);
+                    
+                    if (addComments) {
+                        process += '    -- Clock divider process using function\n';
+                    }
+                    
+                    process += '    clock_process: process(clk_in, reset)\n';
+                    process += '    begin\n';
+                    process += '        if reset = \'1\' then\n';
+                    process += '            counter <= 0;\n';
+                    process += '            clk_state <= \'0\';\n';
+                    process += '            clk_out <= \'0\';\n';
+                    process += '        elsif rising_edge(clk_in) then\n';
+                    process += '            if counter = ' + (clockDivisor-1) + ' then\n';
+                    process += '                counter <= 0;\n';
+                    process += '                clk_state <= not clk_state;\n';
+                    process += '            else\n';
+                    process += '                counter <= counter + 1;\n';
+                    process += '            end if;\n';
+                    process += '            clk_out <= clk_state;\n';
+                    process += '        end if;\n';
+                    process += '    end process;\n';
+                    break;
+            }
+        } else {
+            // Use procedure approach
+            switch(componentType) {
+                case 'mux':
+                    const muxInputs = getMuxInputCount();
+                    const muxWidth = getMuxWidth();
+                    
+                    if (addComments) {
+                        process += '    -- Process to select output using procedure\n';
+                    }
+                    
+                    // Input parameters for procedure call
+                    let muxSignals = [];
+                    for (let i = 0; i < muxInputs; i++) {
+                        muxSignals.push(`in${i}`);
+                    }
+                    muxSignals.push('sel');
+                    muxSignals.push('output');
+                    
+                    process += '    mux_process: process(';
+                    process += muxSignals.join(', ');
+                    process += ')\n';
+                    process += '    begin\n';
+                    process += `        ${functionTitle}(`;
+                    
+                    // Generate parameter list for procedure call
+                    let paramList = [];
+                    for (let i = 0; i < muxInputs; i++) {
+                        paramList.push(`in${i}`);
+                    }
+                    paramList.push('sel');
+                    paramList.push('output');
+                    
+                    process += paramList.join(', ');
+                    process += ');\n';
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'demux':
+                    const demuxOutputs = document.getElementById('demux-outputs').value === 'custom' ? 
+                        parseInt(document.getElementById('demux-custom-outputs')?.value || 4) : 
+                        parseInt(document.getElementById('demux-outputs').value);
+                    
+                    if (addComments) {
+                        process += '    -- Process to route the outputs using procedure\n';
+                    }
+                    
+                    // Create signal list for sensitivity
+                    let signals = ['input', 'sel'];
+                    
+                    process += '    demux_process: process(';
+                    process += signals.join(', ');
+                    process += ')\n';
+                    process += '    begin\n';
+                    
+                    // Generate parameter list for procedure call
+                    let demuxParamList = ['input', 'sel'];
+                    for (let i = 0; i < demuxOutputs; i++) {
+                        demuxParamList.push(`out${i}`);
+                    }
+                    
+                    process += `        ${functionTitle}(`;
+                    process += demuxParamList.join(', ');
+                    process += ');\n';
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'decoder':
+                    if (addComments) {
+                        process += '    -- Process to decode using procedure\n';
+                    }
+                    
+                    process += '    decoder_process: process(input, enable)\n';
+                    process += '    begin\n';
+                    process += `        ${functionTitle}(input, enable, output);\n`;
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'encoder':
+                    const isPriority = document.getElementById('encoder-priority').checked;
+                    
+                    if (addComments) {
+                        process += '    -- Process to encode using procedure\n';
+                    }
+                    
+                    process += '    encoder_process: process(input, enable)\n';
+                    process += '    begin\n';
+                    if (isPriority) {
+                        process += `        ${functionTitle}(input, enable, valid, output);\n`;
+                    } else {
+                        process += `        ${functionTitle}(input, enable, output);\n`;
+                    }
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'sipo':
+                    if (addComments) {
+                        process += '    -- Process for shift register using procedure\n';
+                    }
+                    
+                    process += '    sipo_process: process(clk, reset)\n';
+                    process += '    begin\n';
+                    process += '        if reset = \'1\' then\n';
+                    process += '            shift_reg <= (others => \'0\');\n';
+                    process += '            parallel_out <= (others => \'0\');\n';
+                    process += '        elsif rising_edge(clk) then\n';
+                    process += `            ${functionTitle}(serial_in, shift_reg, parallel_out);\n`;
+                    process += '        end if;\n';
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'piso':
+                    if (addComments) {
+                        process += '    -- Process for shift register using procedure\n';
+                    }
+                    
+                    process += '    piso_process: process(clk, reset)\n';
+                    process += '    begin\n';
+                    process += '        if reset = \'1\' then\n';
+                    process += '            shift_reg <= (others => \'0\');\n';
+                    process += '            serial_out <= \'0\';\n';
+                    process += '        elsif rising_edge(clk) then\n';
+                    process += `            ${functionTitle}(load, parallel_in, shift_reg, serial_out);\n`;
+                    process += '        end if;\n';
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'sram':
+                    if (addComments) {
+                        process += '    -- Memory read/write process using procedure\n';
+                    }
+                    
+                    process += '    sram_process: process(clk, reset)\n';
+                    process += '    begin\n';
+                    process += '        if reset = \'1\' then\n';
+                    process += '            memory <= (others => (others => \'0\'));\n';
+                    process += '            data_out <= (others => \'0\');\n';
+                    process += '        elsif rising_edge(clk) then\n';
+                    process += `            ${functionTitle}(write_en, addr, data_in, memory, data_out);\n`;
+                    process += '        end if;\n';
+                    process += '    end process;\n';
+                    break;
+                    
+                case 'clock':
+                    if (addComments) {
+                        process += '    -- Clock divider process using procedure\n';
+                    }
+                    
+                    process += '    clock_process: process(clk_in, reset)\n';
+                    process += '    begin\n';
+                    process += '        if reset = \'1\' then\n';
+                    process += '            counter <= 0;\n';
+                    process += '            clk_out <= \'0\';\n';
+                    process += '        elsif rising_edge(clk_in) then\n';
+                    process += `            ${functionTitle}(counter, clk_out);\n`;
+                    process += '        end if;\n';
+                    process += '    end process;\n';
+                    break;
+            }
+        }
+        
+        return process;
+    }
+           
+    // Initialize the UI by showing the correct component parameters
+    document.getElementById('mux-params').style.display = 'block';
+
+});
+     
+    </script>
+</body>
+</html>
