@@ -482,12 +482,12 @@
                 
                 <div class="form-group">
                     <label for="entity-title">Entity Title</label>
-                    <input type="text" id="entity-title" class="input-field" placeholder="e.g., Mux_Entity" value="Entity_1">
+                    <input type="text" id="entity-title" class="input-field" placeholder="e.g., Mux_Entity" value="Entity_1"   maxlength="20">
                 </div>
                 
                 <div class="form-group">
                     <label for="architecture-title">Architecture Title</label>
-                    <input type="text" id="architecture-title" class="input-field" placeholder="e.g., Behavioral" value="Arch_1">
+                    <input type="text" id="architecture-title" class="input-field" placeholder="e.g., Behavioral" value="Arch_1" maxlength="20">
                 </div>
                 
                 <div class="form-group">
@@ -851,6 +851,7 @@
             encoderCustomInputsGroup.style.display = 'none';
         }
     });
+    
 
     // For SIPO custom width
     const sipoWidthSelect = document.getElementById('sipo-width');
@@ -1080,6 +1081,11 @@
     }
     
     function generateEntityDeclaration(componentType, entityTitle) {
+        // Check if the first character is a number
+    if (/^\d/.test(entityTitle)) {
+        alert("Entity title cannot start with a number.");
+        return; // Stop the function
+    }
         let entity = `entity ${entityTitle} is\n`;
         entity += '    Port (\n';
         
